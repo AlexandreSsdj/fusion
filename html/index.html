@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>CRUD</title>
+		<link rel="stylesheet" type="text/css" href="../lib/themes/black/easyui.css">
+		<link rel="stylesheet" type="text/css" href="../lib/themes/icon.css">
+		<link rel="stylesheet" type="text/css" href="../lib/themes/color.css">
+		<script src="../lib/jquery.min.js"></script>
+		<script src="../lib/jquery.easyui.min.js"></script>
+		<style type="text/css"></style>
+	</head>
+	<body>
+		<h2>Transportadora</h2>
+    
+    <table id="dg" title="Motoristas" class="easyui-datagrid" style="width:700px;height:250px"
+            url="../php/get.php"
+            toolbar="#toolbar" pagination="true"
+            rownumbers="true" fitColumns="true" singleSelect="true">
+        <thead>
+            <tr>
+                <th field="matricula" width="50">Matrícula</th>
+                <th field="nomecompleto" width="50">Nome Completo</th>
+                <th field="telefone" width="50">Telefone</th>
+                <th field="ativo" width="50">Ativo</th>
+                <th field="dataadimissao" width="50">Data da Adimissão</th>
+                <th field="tipocontrato" width="50">Tipo do Contrato</th>
+            </tr>
+        </thead>
+    </table>
+    <div id="toolbar">
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newUser()">Novo Usuário</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editUser()">Editar Motorista</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="destroyUser()">Remover Motorista</a>
+    </div>
+    
+    <div id="dlg" class="easyui-dialog" style="width:400px"
+            closed="true" buttons="#dlg-buttons">
+        <form id="fm" method="post" novalidate style="margin:0;padding:10px 25px">
+            <div style="margin-bottom:10px;font-size:14px;border-bottom:1px solid #ccc">User Information</div>
+            <div style="margin-bottom:5px">
+                <input name="matricula" class="easyui-textbox" label="Matrícula:" style="width:100%">
+            </div>
+            <div style="margin-bottom:5px">
+                <input name="nomecompleto" class="easyui-textbox" label="Nome Completo:" style="width:100%">
+            </div>
+            <div style="margin-bottom:5px">
+                <input name="telefone" class="easyui-textbox" label="Telefone:" style="width:100%">
+            </div>
+            <div style="margin-bottom:5px">
+                <input name="dataadimissao" class="easyui-datebox" label="Data de Adimissão:" style="width:100%">
+            </div>
+            <div style="margin-bottom:5px">
+                <input name="tipocontrato" class="easyui-textbox" label="Tipo do Contrato:" style="width:50%">
+            </div>
+        </form>
+    </div>
+    <div id="dlg-buttons">
+        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" onclick="saveUser()" style="width:90px">Save</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">Cancel</a>
+    </div>
+    <script type="text/javascript">
+        var url;
+        function newUser(){
+            $('#dlg').dialog('open').dialog('center').dialog('setTitle','New User');
+            $('#fm').form('clear');
+            url = '../php/insert.php';
+        }
+        function editUser(){
+            var row = $('#dg').datagrid('getSelected');
+            if (row){
+                $('#dlg').dialog('open').dialog('center').dialog('setTitle','Edit User');
+                $('#fm').form('load',row);
+                url = '../php/update.php?id='+row.id;
+            }
+        }
+        function saveUser(){
+            $('#fm').form('submit',{
+                url: url,
+                onSubmit: function(){
+                    return $(this).form('validate');
+                },
+                success: function(result){
+                    var result = eval('('+result+')');
+                    if (result.errorMsg){
+                        $.messager.show({
+                            title: 'Error',
+                            msg: result.errorMsg
+                        });
+                    } else {
+                        $('#dlg').dialog('close');        // close the dialog
+                        $('#dg').datagrid('reload');    // reload the user data
+                    }
+                }
+            });
+        }
+        function destroyUser(){
+            var row = $('#dg').datagrid('getSelected');
+            if (row){
+                $.messager.confirm('Confirm','Are you sure you want to destroy this user?',function(r){
+                    if (r){
+                        $.post('../php/delete.php',{id:row.id},function(result){
+                            if (result.success){
+                                $('#dg').datagrid('reload');    // reload the user data
+                            } else {
+                                $.messager.show({    // show error message
+                                    title: 'Error',
+                                    msg: result.errorMsg
+                                });
+                            }
+                        },'json');
+                    }
+                });
+            }
+        }
+    </script>
+	</body>
+</html>
